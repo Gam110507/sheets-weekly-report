@@ -1,0 +1,17 @@
+# Generated - reproducible from make_orders.py
+data/*.csv
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local helper
+PUSH-TO-GITHUB.bat
