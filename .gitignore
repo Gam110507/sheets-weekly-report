@@ -21,3 +21,8 @@ screenshots/email-preview.html
 # the project.
 PUSH-TO-GITHUB.bat
 COMMIT-MESSAGE.txt
+
+# ── scratch, never part of the project ───────────────────────
+# A working folder on the machine this is edited from. It exists; that is
+# exactly why this rule has to stay.
+_to_delete/
