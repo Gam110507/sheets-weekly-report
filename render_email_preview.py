@@ -5,6 +5,11 @@ The HTML template here is a direct port of renderEmail_() in
 apps-script/Code.gs, and the numbers are read out of the built workbook rather
 than typed in. So the preview is the real thing with real figures, not a mockup.
 
+Two deliberate differences, both because this runs outside Google: the "open
+the full report" link has no Sheet URL to point at, and the plain-text
+alternative body that Code.gs also sends is not rendered. Everything visible in
+the HTML is what arrives.
+
     python3 render_email_preview.py     # writes screenshots/email-preview.html
 """
 
@@ -48,7 +53,7 @@ def main() -> None:
         if name:
             products.append((name, rep.cell(row=r, column=3).value,
                              rep.cell(row=r, column=4).value))
-    for i in range(6):
+    for i in range(5):          # Code.gs reads 5 channel rows; match it exactly
         r = sec + 2 + i
         name = rep.cell(row=r, column=6).value
         if name:

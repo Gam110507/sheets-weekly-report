@@ -8,7 +8,9 @@ pandas and compares them cell by cell.
 
     python3 verify_workbook.py
 
-Run it after any change to build_workbook.py, and after recalc.py.
+Run it after any change to build_workbook.py, and always after recalc.py —
+openpyxl writes formulas without calculating them, so an unrecalculated
+workbook has nothing for this script to read.
 """
 
 import sys
@@ -70,6 +72,22 @@ def main() -> int:
     wb = load_workbook(WB, data_only=True)
     rep = wb["Weekly Report"]
     calc = wb["Weekly Calc"]
+
+    # `data_only=True` reads cached results, not formulas. openpyxl never
+    # calculates anything, so a workbook straight out of build_workbook.py has
+    # no cache and every cell below reads None. Left alone that produces
+    # seventeen confident failures against a workbook that is entirely correct
+    # — the worst possible output from a tool whose whole job is telling you
+    # whether to trust the numbers. So: say what actually happened.
+    if rep["B6"].value is None and rep["D6"].value is None:
+        print("The workbook has formulas but no calculated values.\n")
+        print("  openpyxl writes formulas without evaluating them, so nothing has\n"
+              "  been calculated yet. This is not a failure — there is simply\n"
+              "  nothing here to check.\n")
+        print("  Run:  python3 recalc.py     (then this script again)\n")
+        print("  Or open the file in Excel or Google Sheets and save it, which\n"
+              "  has the same effect.")
+        return 2
 
     print(f"workbook vs source data   (latest week {latest.date()})\n")
 

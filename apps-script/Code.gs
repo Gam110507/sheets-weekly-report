@@ -170,8 +170,6 @@ function pct_(v) {
 }
 
 function dayName_(d) {
-  const names = { 1: 'Sunday', 2: 'Monday', 3: 'Tuesday', 4: 'Wednesday',
-                  5: 'Thursday', 6: 'Friday', 7: 'Saturday' };
   for (const k in ScriptApp.WeekDay) {
     if (ScriptApp.WeekDay[k] === d) return k.charAt(0) + k.slice(1).toLowerCase();
   }

@@ -68,9 +68,11 @@ date explicitly, so it means the same thing everywhere:
 ```
 
 **"Which week is this?" is one cell.** It resolves to the most recent week that
-actually had orders, not the newest date in the file. A refund processed nine
-days after the sale creates a week containing nothing but that refund, and
-anchoring on the latest date would point the entire report at it.
+actually had orders, not the newest date in the file. A refund processed a week
+after the sale creates a week containing nothing but that refund, and anchoring
+on the latest date would point the entire report at it. That is not
+hypothetical here: the last week in this export contains exactly one row, a
+single refunded line, and the report correctly ignores it.
 
 ---
 
@@ -136,9 +138,10 @@ return zero without complaining.
 ## Portability
 
 Every formula uses functions that behave identically in Excel and Google
-Sheets: `SUMIFS`, `INDEX`, `MATCH`, `LARGE`, `IFERROR`, `SUMPRODUCT`. No
-`XLOOKUP`, `FILTER` or `UNIQUE`, because the file has to survive being uploaded
-to Sheets and opened again in Excel.
+Sheets — nineteen of them, `SUMIFS`, `INDEX`, `MATCH`, `LARGE`, `IFERROR` and
+`SUMPRODUCT` among them. No `XLOOKUP`, `FILTER` or `UNIQUE`, and no dynamic
+array functions at all, because the file has to survive being uploaded to
+Sheets and opened again in Excel.
 
 ---
 
@@ -148,9 +151,21 @@ to Sheets and opened again in Excel.
 pip install -r requirements.txt
 
 python3 make_orders.py          # generate the demo export
-python3 build_workbook.py       # build the three-tab workbook
+python3 build_workbook.py       # build the three tabs and every formula
+python3 recalc.py               # calculate them  (needs LibreOffice)
 python3 verify_workbook.py      # prove the numbers reconcile
 ```
+
+The third step is not optional, and it is worth knowing why. `openpyxl` writes
+formulas as text — it never evaluates them, because it is not a spreadsheet
+engine. So the file that comes out of step 2 holds 11,270 correct formulas and
+not a single number. Excel and Google Sheets calculate on open and would never
+show you the difference; `verify_workbook.py` reads the *cached* results and
+would find nothing to read. `recalc.py` hands the file to LibreOffice, which
+does the arithmetic and saves the answers back in.
+
+Skip it and the verifier says so plainly rather than reporting seventeen
+failures against a workbook that is entirely correct.
 
 Then upload `weekly-report-template.xlsx` to Google Drive, open it with Google
 Sheets, and paste `apps-script/Code.gs` into Extensions ▸ Apps Script.
@@ -161,10 +176,21 @@ Sheets, and paste `apps-script/Code.gs` into Extensions ▸ Apps Script.
 
 - The demo data is generated, not a real store's export. The defects in it are
   real ones, but the numbers are synthetic.
-- The "counts as an order" column uses an expanding `COUNTIF`, which is fine to
-  around 20,000 rows and gets slow well beyond that. For a bigger file the
-  aggregation belongs in the Apps Script rather than in formulas, and I would
-  say so before starting rather than on day six.
+- **The template is cut to the shape of the export it was built from**, and
+  this is the limit that matters most in practice. `build_workbook.py` writes
+  helper formulas for exactly as many rows as the source file had (1,835 here),
+  and it writes the product and channel names in as literal text. So pasting a
+  longer export leaves the extra rows out of the totals — silently, because a
+  formula that stops short still evaluates cleanly — and a product or channel
+  that did not exist at build time never appears. Week to week that is fine,
+  which is the normal case. When the catalogue changes or the file outgrows its
+  row count, `build_workbook.py` gets re-run. I would rather say that here than
+  have someone discover it in a month from a total that looks slightly low.
+- The "counts as an order" column uses an expanding `COUNTIF`. That is about
+  formula *cost*, not capacity: it stays comfortable to roughly 20,000 rows and
+  gets slow well beyond. For a file that big the aggregation belongs in the
+  Apps Script rather than in formulas, and I would say so before starting
+  rather than on day six.
 - Gmail caps how many emails a script may send per day. Well outside the range
   of one weekly report, but worth knowing if the same script is pointed at a
   hundred recipients.
@@ -176,8 +202,10 @@ Sheets, and paste `apps-script/Code.gs` into Extensions ▸ Apps Script.
 ```
 make_orders.py              generates a believable messy export
 build_workbook.py           builds the three tabs and every formula
+recalc.py                   calculates them, so the file ships with values
 verify_workbook.py          17 checks, workbook against source
-render_email_preview.py     renders the email exactly as the script sends it
+render_email_preview.py     renders the email as the script sends it
+shots.py                    regenerates the three README screenshots
 apps-script/Code.gs         the scheduled rebuild and email
 weekly-report-template.xlsx the deliverable
 screenshots/

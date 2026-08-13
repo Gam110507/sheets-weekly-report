@@ -1,4 +1,5 @@
-# Pinned to what this was built and tested against.
+# Lower bounds are what this was built and tested against; upper bounds keep
+# a future major release from changing behaviour underneath it.
 #   pip install -r requirements.txt
 pandas>=2.2,<4
 numpy>=1.26,<3

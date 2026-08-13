@@ -13,5 +13,11 @@ venv/
 .DS_Store
 Thumbs.db
 
-# Local helper
+# Generated intermediate: render_email_preview.py writes this, shots.py turns
+# it into the PNG the README shows. The picture is the artefact; this is not.
+screenshots/email-preview.html
+
+# Local helper — a Windows double-click wrapper for one machine, not part of
+# the project.
 PUSH-TO-GITHUB.bat
+COMMIT-MESSAGE.txt
